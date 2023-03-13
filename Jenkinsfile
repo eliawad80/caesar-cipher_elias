@@ -1,36 +1,36 @@
 pipeline {
     agent any
-
+    
     stages {
-        stage('Preparing gradlew') {
+        stage('Build') {
             steps {
-                sh 'chmod +x gradlew'
+                sh './gradlew clean build'
             }
         }
-        stage('test') {
+        
+        stage('Test') {
             steps {
                 sh './gradlew test'
             }
         }
-        stage('build') {
+        
+        stage('Package') {
             steps {
-                sh './gradlew build'
+                sh './gradlew assemble'
             }
         }
-        stage('Release') {
+        
+        stage('Build Docker Image') {
             steps {
-                sh 'token="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"'
-                sh 'tag=$(git describe --tags)'
-                sh 'message="$(git for-each-ref refs/tags/$tag --format=\'%(contents)\')"'
-                sh 'name=$(echo "$message" | head -n1)'
-                sh 'description=$(echo "$message" | tail -n +3)'
-                sh 'release=$(curl -XPOST -H "Authorization:token $token" --data \'{"tag_name": "$tag", "target_commitish": "main", "name": "$name", "body": "$description", "draft": false, "prerelease": false}\' "https://api.github.com/repos/YoussF/caesar-cipher/releases)"'
+                sh 'docker build -t caeser .'
             }
         }
-        stage('Deploy') {
+        
+        stage('Push to GitHub Packages') {
             steps {
-                echo 'Deploying....'
-            }
-        }
+                withCredentials([sshUserPrivateKey(credentialsId: '5237ad31-7aa1-4fb2-9d7b-d8ce8734718f', keyFileVariable: 'SSH_KEY')]) {
+                    sh 'docker tag my-image docker.pkg.github.com/eliawad80/caesar-cipher_elias/caeser:latest'
+                    sh 'docker login docker.pkg.github.com -u eliawad80 -p $SSH_KEY'
+                    sh 'docker push docker.pkg.github.com/eliawad80/caesar-cipher_elias/caeser:latest'
     }
 }
