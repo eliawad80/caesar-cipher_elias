@@ -32,5 +32,7 @@ pipeline {
                     sh 'docker tag my-image docker.pkg.github.com/eliawad80/caesar-cipher_elias/caeser:latest'
                     sh 'docker login docker.pkg.github.com -u eliawad80 -p $SSH_KEY'
                     sh 'docker push docker.pkg.github.com/eliawad80/caesar-cipher_elias/caeser:latest'
-    }
+            }
+       }
+  }
 }
